@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -25,6 +26,15 @@ async function run() {
   try {
     await client.connect();
     const productsCollection = client.db("Alex-store").collection("product");
+
+    app.post('/login', async (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN, {
+          expiresIn: '1d'
+      });
+      res.send({ accessToken });
+  })
+
     app.get('/product', async (req, res) => {
       const query = {};
       const cursor = productsCollection.find(query);
@@ -51,7 +61,22 @@ async function run() {
       const query = {_id: ObjectId(id)};
       const result = await productsCollection.deleteOne(query);
       res.send(result);
-    })
+    });
+    
+    app.put("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const newProduct = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateProduct = {
+        $set: {
+          quantity: newProduct.quantity,
+        },
+      };
+      const result = await carCollection.updateOne(filter, updateProduct, options);
+      console.log(result);
+      res.send(result);
+    });
   }
 
   finally {
