@@ -63,17 +63,25 @@ async function run() {
       res.send(result);
     });
     
-    app.put("/product/:id", async (req, res) => {
+    // PUT
+    app.put("/service/:id", async (req, res) => {
       const id = req.params.id;
-      const newProduct = req.body;
+
+      // const updateQuantity = req.body;
+
+      // const serviceDelevary = updateQuantity.quantity -1;
+
       const filter = { _id: ObjectId(id) };
-      const options = { upsert: true };
+      const product = await productsCollection.findOne(filter)
+      console.log(product)
+      // const options = { upsert: true };
       const updateProduct = {
         $set: {
-          quantity: newProduct.quantity,
+          quantity: product.quantity -1 
+
         },
       };
-      const result = await carCollection.updateOne(filter, updateProduct, options);
+      const result = await productsCollection.updateOne(filter, updateProduct);
       console.log(result);
       res.send(result);
     });
